@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Pješačka pristupačnost</title>
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.12.0/mapbox-gl.css" rel="stylesheet">
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.12.0/mapbox-gl.js"></script>
+  <style>
+    body { 
+        margin: 0; 
+        padding: 0;
+        font-family:sans-serif;
+        font-size:17px; 
+    }
+    #map { 
+        position: absolute; 
+        top: 0; 
+        bottom: 0; 
+        width: 100%;
+    }
+    li{
+      padding: 3px 0;
+    }
+    #panel {
+      background:white;
+      width:300px;
+      border:1px solid rgba(0,0,0,0.01);
+      position: absolute;
+      right:16px;
+      top: 16px;
+      box-shadow: 0 0 4px 0 rgba(0,0,0,0.5);
+      color:rgba(0,0,0,0.5);
+    }
+    #hamburger {
+      position: absolute;
+      top: 16px;
+      left: 8px;
+      font-size: 30px;
+      cursor: pointer;
+      background: white;
+      padding: 5px 10px;
+      z-index: 1001;
+      box-shadow: 0 0 4px rgba(0,0,0,0.4);
+    }
+    #sidebar {
+      height: 100%;
+      width: 0;
+      position: fixed;
+      z-index: 1000;
+      top: 0;
+      left: 0;
+      background-color: white;
+      overflow-x: hidden;
+      transition: 0.3s;
+      padding-top: 60px;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.3);
+    }
+    #sidebar a {
+      padding: 10px 20px;
+      text-decoration: none;
+      font-size: 18px;
+      color: #333;
+      display: block;
+      transition: 0.3s;
+    }
+    #sidebar a:hover {
+      background-color: #f1f1f1;
+    }
+    .closebtn {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      font-size: 36px;
+      color: #888;
+    }
+    
+
+    /* Novi stilovi za layer-toggle */
+    #layer-toggle{
+      background:white;
+      width:250px;
+      border:1px solid rgba(0,0,0,0.01);
+      position: absolute;
+      left:16px;
+      top:160px;
+      box-shadow: 0 0 4px 0 rgba(0,0,0,0.5);
+      color:rgba(0,0,0,0.5);
+      z-index: 1001;
+      padding: 10px;
+    }
+    .layer-option {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .layer-option span {
+      margin-left: 10px; /* Razmak između kružića i naziva */
+    }
+    .circle {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: inline-block;
+      border: 2px solid #808080;
+      background-color: transparent;
+      transition: background-color 0.3s, border 0.3s;
+    }
+    .active-circle {
+      background-color: #808080;
+      border: 2px solid #000;
+    }
+    h4{
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+      margin:0;
+      padding:16px;
+    }
+
+    ul{
+      list-style-type:none;
+      margin:0;
+      padding:16px;
+    }
+
+    ul span{
+      width:25px;
+      height:25px;
+      display:inline-block;
+      margin-right:8px;
+      vertical-align:middle;
+    }
+
+    dd{
+      margin-left: 0px;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+
+    .mapboxgl-popup-content{
+      font-size: 14px;
+      color:rgba(0,0,0,0.5);
+      min-width: 200px;
+      max-width: 250px;
+      box-shadow: 0 0 4px 0 rgba(0,0,0,0.5);
+    }
+
+    dl{
+      margin-bottom:0;
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+
+  <!-- Hamburger gumb -->
+  <div id="hamburger" onclick="toggleSidebar()">☰</div>
+
+  <!-- Sidebar meni -->
+  <div id="sidebar">
+    <a href="javascript:void(0)" class="closebtn" onclick="closeSidebar()">&times;</a>
+
+    <a href="about.html">O projektu</a>
+  </div>
+
+ 
+
+  <!-- Panel s legendom -->
+  <div id="panel">
+    <h4>Pristupačnost prostora pješaku</h4>
+    <ul>
+      <li><span style="background: #fffff1;border:1px solid #ccc;box-sizing:border-box;"></span>0-10 (vrlo niska)</li>
+      <li><span style="background: #ffffd9;border:1px solid #ccc;box-sizing:border-box;"></span>10-20</li>
+      <li><span style="background: #edf8b1;border:1px solid #ccc;box-sizing:border-box;"></span>20-30</li>
+      <li><span style="background: #c7e9b4;border:1px solid #ccc;box-sizing:border-box;"></span>30-40</li>
+      <li><span style="background: #7fcdbb;border:1px solid #ccc;box-sizing:border-box;"></span>40-50</li>
+      <li><span style="background: #41b6c4;border:1px solid #ccc;box-sizing:border-box;"></span>50-60</li>
+      <li><span style="background: #1d91c0;border:1px solid #ccc;box-sizing:border-box;"></span>60-70</li>
+      <li><span style="background: #225ea8;border:1px solid #ccc;box-sizing:border-box;"></span>70-80</li>
+      <li><span style="background: #253494;border:1px solid #ccc;box-sizing:border-box;"></span>80-90</li>
+      <li><span style="background: #081d58;border:1px solid #ccc;box-sizing:border-box;"></span>90-100 (vrlo visoka)</li>
+      <li><span style="background: #808080;border:1px solid #ccc;box-sizing:border-box;"></span>bez podataka</li>
+    </ul>
+  </div>
+
+  <!-- Layer toggle panel -->
+  <div id="layer-toggle">
+    <div class="layer-option" data-layer="stanovanje" onclick="toggleLayers('stanovanje')">
+      <span class="circle"></span><span>Stanovanje</span>
+    </div>
+    <div class="layer-option" data-layer="posao" onclick="toggleLayers('posao')">
+      <span class="circle"></span><span>Posao</span>
+    </div>
+    <div class="layer-option" data-layer="turizam" onclick="toggleLayers('turizam')">
+      <span class="circle"></span><span>Turizam</span>
+    </div>
+  </div>
+
+<script>
+  mapboxgl.accessToken = 'pk.eyJ1IjoiYWJ1ZGltaXJnZW9mIiwiYSI6ImNtYW50dXpuNjAyMTAybHNjZXBqYzFuczgifQ.5lNETsosElQK8OVY5qD5ew';
+  var map = new mapboxgl.Map({
+      container: 'map',
+      style:'mapbox://styles/abudimirgeof/cmanul4ws01iy01qo70kq5iky',
+      center: [16.049641, 45.789962],
+      zoom: 9.5,
+      minZoom: 7,
+      maxZoom: 15,
+  });
+
+  var nav = new mapboxgl.NavigationControl();
+  map.addControl(nav, 'bottom-left');
+
+  const slojevi = ['stanovanje', 'posao', 'turizam'];
+
+  map.on('load', () => {
+    toggleLayers('stanovanje');
+  });
+
+  function toggleSidebar() {
+    var sidebar = document.getElementById("sidebar");
+    var layerToggle = document.getElementById("layer-toggle");
+    var hamburger = document.getElementById("hamburger");
+
+    sidebar.style.width = "250px";
+    layerToggle.style.display = "none";
+    hamburger.style.display = "none";
+  }
+
+  function closeSidebar() {
+    var sidebar = document.getElementById("sidebar");
+    var layerToggle = document.getElementById("layer-toggle");
+    var hamburger = document.getElementById("hamburger");
+
+    sidebar.style.width = "0";
+    layerToggle.style.display = "block";
+    hamburger.style.display = "block";
+  }
+
+  function toggleLayers(aktivniSloj) {
+    slojevi.forEach(sloj => {
+      const vidljivost = (sloj === aktivniSloj) ? 'visible' : 'none';
+      if (map.getLayer(sloj)) {
+        map.setLayoutProperty(sloj, 'visibility', vidljivost);
+      }
+    });
+
+    const buttons = document.querySelectorAll('.layer-option');
+    buttons.forEach(button => {
+      const circle = button.querySelector('.circle');
+      const layerName = button.getAttribute('data-layer');
+      if (layerName === aktivniSloj) {
+        circle.classList.add('active-circle');
+      } else {
+        circle.classList.remove('active-circle');
+      }
+    });
+  }
+
+  map.on('mousemove', function(event) {
+    if (map.loaded()) {
+      var aktivniSloj = document.querySelector('.active-circle').parentElement.getAttribute('data-layer');
+      var features = map.queryRenderedFeatures(event.point, {
+        layers: [aktivniSloj]
+      });
+      map.getCanvas().style.cursor = features.length ? 'pointer' : '';
+    }
+  });
+
+  map.on('click', function(event) {
+    var aktivniSloj = document.querySelector('.active-circle').parentElement.getAttribute('data-layer');
+    var features = map.queryRenderedFeatures(event.point, { layers: [aktivniSloj] });
+
+    if (features.length > 0) {
+      var feature = features[0];
+      var pristupacnost = Math.round(feature.properties.Result);
+      var populacija = Math.round(feature.properties.Population);
+      var zelenilo = Math.round(feature.properties.Green_point);
+      var znamenitosti = Math.round(feature.properties.Amenities);
+      var pedshed = Math.round(feature.properties.PedShed);
+
+      new mapboxgl.Popup()
+        .setLngLat(event.lngLat)
+        .setHTML('<dl>' +
+          '<dt>Pristupačnost</dt><dd>' + pristupacnost + '</dd>' +
+          '<dt>Populacija</dt><dd>' + populacija + '</dd>' +
+          '<dt>Zelene površine</dt><dd>' + zelenilo + '</dd>' +
+          '<dt>Znamenitosti</dt><dd>' + znamenitosti + '</dd>' +
+          '<dt>Ped Shed</dt><dd>' + pedshed + '</dd>' +
+          '</dl>')
+        .addTo(map);
+    }
+  });
+</script>
+
+</body>
+</html>
